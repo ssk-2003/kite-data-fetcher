@@ -4,6 +4,7 @@ import subprocess
 import threading
 import time
 import pandas as pd
+import shutil
 from flask import Flask, render_template, request, redirect, jsonify
 from kiteconnect import KiteConnect
 from sqlalchemy import create_engine, text
@@ -89,28 +90,43 @@ def automated_login():
             chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
             
             # In Docker/Render, use Chromium and Chromium-Driver
-            chromium_path = None
-            possible_paths = ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/lib/chromium/chromium"]
-            for path in possible_paths:
-                if os.path.exists(path):
-                    chromium_path = path
-                    break
+            chromium_path = shutil.which("chromium") or shutil.which("chromium-browser")
+            driver_path = shutil.which("chromedriver")
+            
+            # Fallback for specific Render/Docker paths
+            custom_paths = ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/lib/chromium/chromium"]
+            if not chromium_path:
+                for path in custom_paths:
+                    if os.path.exists(path):
+                        chromium_path = path
+                        break
             
             if chromium_path:
                 chrome_options.binary_location = chromium_path
-                script_status["login"]["output"] += f"🖥️ Using Chromium at {chromium_path}...\n"
-                # Use fixed chromedriver path
-                driver_path = "/usr/bin/chromedriver"
-                if not os.path.exists(driver_path): driver_path = "/usr/lib/chromium/chromedriver"
+                script_status["login"]["output"] += f"🖥️ Found Chromium at {chromium_path}...\n"
                 
-                script_status["login"]["output"] += f"⚙️ Initializing Chromium driver ({driver_path})...\n"
-                service = Service(executable_path=driver_path)
-                driver = webdriver.Chrome(service=service, options=chrome_options)
+                if not driver_path:
+                    # Try common driver paths
+                    for dp in ["/usr/bin/chromedriver", "/usr/lib/chromium/chromedriver"]:
+                        if os.path.exists(dp):
+                            driver_path = dp
+                            break
+                            
+                if driver_path:
+                    script_status["login"]["output"] += f"⚙️ Initializing Chromium driver ({driver_path})...\n"
+                    service = Service(executable_path=driver_path)
+                    driver = webdriver.Chrome(service=service, options=chrome_options)
+                else:
+                    raise Exception("Chromium found but chromedriver is missing!")
             else:
+                # Debugging: List /usr/bin if in cloud
+                if os.path.exists("/usr/bin"):
+                    script_status["login"]["output"] += f"🔍 Debug: /usr/bin contents: {str(os.listdir('/usr/bin')[:15])}...\n"
+                
                 # Local Windows/Dev mode fallback
-                script_status["login"]["output"] += f"⚠️ Chromium not found in {possible_paths}. Falling back to local mode...\n"
+                script_status["login"]["output"] += f"⚠️ Chromium not found. Falling back to local/manager mode...\n"
                 from webdriver_manager.chrome import ChromeDriverManager
-                script_status["login"]["output"] += "⚙️ Initializing local Chrome driver (via Manager)...\n"
+                script_status["login"]["output"] += "⚙️ Initializing Chrome via WebDriverManager...\n"
                 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
             driver.set_page_load_timeout(10)  # Fast timeout
             kite = KiteConnect(api_key=API_KEY)
