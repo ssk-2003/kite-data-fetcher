@@ -162,15 +162,24 @@ def automated_login():
             if otp_field:
                 otp_field.clear()
                 otp_field.send_keys(otp)
-                # Immediately click submit
-                try:
-                    submit_btn = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']"))
-                    )
-                    submit_btn.click()
-                except:
-                    driver.find_element(By.TAG_NAME, "button").click()
-                script_status["login"]["output"] += "➡️ 2FA submitted!\n"
+                script_status["login"]["output"] += "✍️ OTP entered. Checking for submission...\n"
+                
+                # Kite often auto-submits. Wait 1s and check if current_url already changed
+                time.sleep(1.5)
+                if "request_token=" in driver.current_url:
+                    script_status["login"]["output"] += "➡️ Auto-submitted successfully!\n"
+                else:
+                    # Try manual submit if not redirecting
+                    try:
+                        submit_btn = WebDriverWait(driver, 5).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' or contains(., 'Continue') or contains(., 'Login')]"))
+                        )
+                        submit_btn.click()
+                        script_status["login"]["output"] += "➡️ Manual submit clicked!\n"
+                    except Exception as e:
+                        # If we can't find a button but still haven't redirected, maybe it's still loading
+                        if "request_token=" not in driver.current_url:
+                            script_status["login"]["output"] += f"⚠️ Submit button not found/clickable, but still not redirected. Page title: {driver.title}\n"
             else:
                 raise Exception("Could not find OTP field")
 
