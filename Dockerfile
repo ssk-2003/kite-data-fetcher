@@ -16,11 +16,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set environment variables
-ENV FLASK_APP=main.py
+ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
 
 # Expose port (Render uses PORT env var)
 EXPOSE 5000
 
 # Start server using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
