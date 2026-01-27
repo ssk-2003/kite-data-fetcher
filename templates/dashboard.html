@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kite Data Fetcher</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --accent: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary), #1e1e3f);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #22c55e, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-fetch {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .btn-fetch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .btn-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .step.running {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .step.done {
+            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .step.failed {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 1.2rem;
+        }
+
+        .step-icon.pending {
+            background: rgba(100, 116, 139, 0.3);
+            color: #64748b;
+        }
+
+        .step-icon.running {
+            background: rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        .step-icon.done {
+            background: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+
+        .step-icon.failed {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .step-content h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .log-box {
+            margin-top: 20px;
+            background: #0a0a0a;
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            color: #22c55e;
+            display: none;
+        }
+
+        .otp-section {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .otp-input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            color: white;
+            font-size: 1.8rem;
+            font-family: monospace;
+            letter-spacing: 10px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .otp-input::placeholder {
+            color: #64748b;
+            letter-spacing: 5px;
+        }
+
+        .fetch-counter {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            margin-top: 16px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .fetch-counter .count {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .fetch-counter .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Top 10 Table */
+        .predictions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .predictions-table th,
+        .predictions-table td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .predictions-table th {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .predictions-table td {
+            font-size: 0.9rem;
+        }
+
+        .score-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .score-high {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .score-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-bolt"></i> Kite Data Fetcher</h1>
+            <p>Login to Kite & Download Daily Market Data</p>
+        </div>
+
+        <!-- Token Status Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h2 style="font-size: 1.2rem;"><i class="fas fa-key" style="color: #f59e0b;"></i> Kite Token</h2>
+                </div>
+                <span class="status-badge {{ 'status-active' if token_status == 'Active' else 'status-expired' }}">
+                    {{ token_status }}
+                </span>
+            </div>
+
+            <!-- Step 1: Start Login -->
+            <div id="login-step-1">
+                <button onclick="showOtpInput()" class="btn btn-login">
+                    <i class="fas fa-rocket"></i> Start Login
+                </button>
+            </div>
+
+            <!-- Step 2: Enter OTP -->
+            <div id="login-step-2" class="otp-section">
+                <p style="margin-bottom: 12px; color: var(--text-secondary);">
+                    <i class="fas fa-mobile-alt" style="color: #22c55e;"></i> Enter your <strong>6-digit code</strong>:
+                </p>
+                <input type="text" id="otp-code" class="otp-input" placeholder="000000" maxlength="6">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="startLogin()" id="btn-go" class="btn btn-login" style="flex: 3;">
+                        <i class="fas fa-play"></i> Login & Fetch
+                    </button>
+                    <button onclick="hideOtpInput()" class="btn" style="flex: 1; background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 10px; text-align: center;">
+                    ⏱️ Code expires in 30 seconds - be quick!
+                </p>
+            </div>
+        </div>
+
+        <!-- Pipeline Steps -->
+        <div class="card">
+            <h2 style="font-size: 1.1rem; margin-bottom: 16px;"><i class="fas fa-tasks" style="color: #3b82f6;"></i>
+                Pipeline Status</h2>
+
+            <div class="step" id="step-login">
+                <div class="step-icon pending" id="icon-login">
+                    <i class="far fa-circle"></i>
+                </div>
+                <div class="step-content">
+                    <h3>1. Kite Login</h3>
+                    <p>Generate access token</p>
+                </div>
+            </div>
+
+            <div class="step" id="step-fetch">
+                <div class="step-icon pending" id="icon-fetch">
+                    <i class="far fa-circle"></i>
+                </div>
+                <div class="step-content">
+                    <h3>2. Daily Fetch</h3>
+                    <p id="fetch-status-text">Download market data (500+ stocks)</p>
+                </div>
+            </div>
+
+            <!-- Fetch Counter -->
+            <div class="fetch-counter" id="fetch-counter">
+                <div class="count" id="stock-count">0</div>
+                <div class="label">Stocks Updated</div>
+            </div>
+
+            <div class="log-box" id="log-output">Waiting for pipeline...</div>
+
+            <button onclick="stopFetch()" id="btn-stop" class="btn btn-danger">
+                <i class="fas fa-stop-circle"></i> STOP PIPELINE
+            </button>
+        </div>
+
+        <!-- Manual Fetch Button -->
+        <div class="card">
+            <button onclick="runFetchOnly()" id="btn-manual-fetch" class="btn btn-fetch">
+                <i class="fas fa-cloud-download-alt"></i> Fetch Data Only
+            </button>
+            <p style="font-size: 0.75rem; color: #64748b; margin-top: 10px; text-align: center;">
+                Use this if you already have a valid token
+            </p>
+        </div>
+
+        <!-- Top 10 Predictions Section -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-size: 1.1rem;"><i class="fas fa-trophy" style="color: #f59e0b;"></i> Top 10 Predictions
+                </h2>
+                <button onclick="loadPredictions()" id="btn-load-predictions" class="btn btn-purple"
+                    style="width: auto; padding: 8px 16px; font-size: 0.85rem;">
+                    <i class="fas fa-cloud-download-alt"></i> Load from Cloud
+                </button>
+            </div>
+
+            <div id="predictions-container" style="display: none;">
+                <table class="predictions-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Symbol</th>
+                            <th>Score</th>
+                            <th>Signal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictions-body">
+                    </tbody>
+                </table>
+            </div>
+            <p id="predictions-empty" style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                Click "Load from Cloud" to see top predictions
+            </p>
+        </div>
+
+        <div class="footer">
+            Kite Data Fetcher v1.0 • 2026
+        </div>
+    </div>
+
+    <script>
+        let stockCount = 0;
+
+        function showOtpInput() {
+            document.getElementById('login-step-1').style.display = 'none';
+            document.getElementById('login-step-2').style.display = 'block';
+            document.getElementById('otp-code').focus();
+        }
+
+        function hideOtpInput() {
+            document.getElementById('login-step-2').style.display = 'none';
+            document.getElementById('login-step-1').style.display = 'block';
+        }
+
+        function updateStep(stepId, status) {
+            const step = document.getElementById('step-' + stepId);
+            const icon = document.getElementById('icon-' + stepId);
+
+            step.className = 'step ' + status;
+            icon.className = 'step-icon ' + status;
+
+            if (status === 'running') {
+                icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            } else if (status === 'done') {
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+            } else if (status === 'failed') {
+                icon.innerHTML = '<i class="fas fa-times"></i>';
+            }
+        }
+
+        function updateStockCount(log) {
+            // Count occurrences of "✅" or "+N Rows" in the log
+            const matches = log.match(/\+\d+ Rows/g);
+            if (matches) {
+                stockCount = matches.length;
+                document.getElementById('stock-count').textContent = stockCount;
+                document.getElementById('fetch-status-text').textContent = `${stockCount} stocks updated`;
+            }
+        }
+
+        function startLogin() {
+            const otp = document.getElementById('otp-code').value;
+            if (otp.length !== 6) {
+                alert('Please enter a valid 6-digit code');
+                return;
+            }
+
+            document.getElementById('btn-go').disabled = true;
+            document.getElementById('btn-go').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+            document.getElementById('log-output').innerHTML = '';
+            document.getElementById('log-output').style.display = 'block';
+            stockCount = 0;
+
+            updateStep('login', 'running');
+
+            fetch('/automated_login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: otp })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        updateStep('login', 'failed');
+                        document.getElementById('btn-go').disabled = false;
+                        document.getElementById('btn-go').innerHTML = '<i class="fas fa-play"></i> Login & Fetch';
+                    }
+                });
+
+            document.getElementById('btn-stop').style.display = 'flex';
+            pollStatus();
+        }
+
+        function runFetchOnly() {
+            document.getElementById('btn-manual-fetch').disabled = true;
+            document.getElementById('btn-manual-fetch').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+            document.getElementById('log-output').innerHTML = '';
+            document.getElementById('log-output').style.display = 'block';
+            document.getElementById('fetch-counter').style.display = 'block';
+            stockCount = 0;
+
+            updateStep('login', 'done');
+            updateStep('fetch', 'running');
+            document.getElementById('btn-stop').style.display = 'flex';
+
+            fetch('/run/fetch')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        updateStep('fetch', 'failed');
+                    }
+                });
+
+            pollStatus();
+        }
+
+        function pollStatus() {
+            const interval = setInterval(() => {
+                fetch('/status')
+                    .then(res => res.json())
+                    .then(status => {
+                        // Login status
+                        if (status.login) {
+                            if (status.login.status === 'done') {
+                                updateStep('login', 'done');
+                            } else if (status.login.status === 'failed') {
+                                updateStep('login', 'failed');
+                            } else if (status.login.status === 'running') {
+                                updateStep('login', 'running');
+                            }
+                            if (status.login.output) {
+                                document.getElementById('log-output').innerHTML = status.login.output.replace(/\n/g, '<br>');
+                            }
+                        }
+
+                        // Fetch status
+                        if (status.fetch) {
+                            if (status.fetch.status === 'running') {
+                                updateStep('fetch', 'running');
+                                document.getElementById('fetch-counter').style.display = 'block';
+                            }
+
+                            if (status.fetch.output) {
+                                document.getElementById('log-output').innerHTML = status.fetch.output.replace(/\n/g, '<br>');
+                                document.getElementById('log-output').scrollTop = document.getElementById('log-output').scrollHeight;
+                                updateStockCount(status.fetch.output);
+                            }
+
+                            if (status.fetch.status === 'done') {
+                                updateStep('fetch', 'done');
+                                clearInterval(interval);
+                                resetButtons();
+                            } else if (status.fetch.status === 'failed') {
+                                updateStep('fetch', 'failed');
+                                clearInterval(interval);
+                                resetButtons();
+                            }
+                        }
+                    });
+            }, 1000);
+        }
+
+        function resetButtons() {
+            document.getElementById('btn-go').disabled = false;
+            document.getElementById('btn-go').innerHTML = '<i class="fas fa-play"></i> Login & Fetch';
+            document.getElementById('btn-manual-fetch').disabled = false;
+            document.getElementById('btn-manual-fetch').innerHTML = '<i class="fas fa-cloud-download-alt"></i> Fetch Data Only';
+            document.getElementById('btn-stop').style.display = 'none';
+        }
+
+        function stopFetch() {
+            const btn = document.getElementById('btn-stop');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
+
+            fetch('/stop/fetch')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'stopped') {
+                        appendLog('🛑 Pipeline stopped manually.');
+                        resetButtons();
+                    } else if (data.error) {
+                        alert('Error stopping: ' + data.error);
+                    }
+                });
+        }
+
+        function loadPredictions() {
+            const btn = document.getElementById('btn-load-predictions');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            fetch('/api/top10')
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sync"></i> Refresh';
+
+                    if (data.error) {
+                        document.getElementById('predictions-empty').textContent = 'Error: ' + data.error;
+                        return;
+                    }
+
+                    if (data.length === 0) {
+                        document.getElementById('predictions-empty').textContent = 'No predictions found in cloud database';
+                        return;
+                    }
+
+                    document.getElementById('predictions-empty').style.display = 'none';
+                    document.getElementById('predictions-container').style.display = 'block';
+
+                    const tbody = document.getElementById('predictions-body');
+                    tbody.innerHTML = '';
+
+                    data.forEach((stock, idx) => {
+                        const scoreClass = stock.omre_score >= 70 ? 'score-high' : stock.omre_score >= 50 ? 'score-medium' : 'score-low';
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="color: var(--text-secondary);">${idx + 1}</td>
+                                <td><strong>${stock.symbol}</strong></td>
+                                <td><span class="score-badge ${scoreClass}">${stock.omre_score.toFixed(1)}</span></td>
+                                <td style="color: ${stock.signal === 'STRONG BUY' ? '#22c55e' : stock.signal === 'BUY' ? '#3b82f6' : '#f59e0b'};">${stock.signal}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Load from Cloud';
+                    document.getElementById('predictions-empty').textContent = 'Failed to load predictions';
+                });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+flask==3.0.0
+kiteconnect==4.2.0
+python-dotenv==1.0.0
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+pandas==2.1.4
+gunicorn==21.2.0
+selenium==4.16.0
+webdriver-manager==4.0.1
