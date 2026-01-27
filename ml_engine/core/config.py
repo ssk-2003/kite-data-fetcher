@@ -23,7 +23,9 @@ def require_env(key: str) -> str:
 KITE_API_KEY = env("KITE_API_KEY")
 KITE_API_SECRET = env("KITE_API_SECRET")
 KITE_REDIRECT_URL = env("KITE_REDIRECT_URL")
-KITE_ACCESS_TOKEN = env("KITE_ACCESS_TOKEN")
+
+def get_access_token():
+    return os.getenv("KITE_ACCESS_TOKEN")
 
 DATABASE_URL = env("DATABASE_URL")
 JWT_SECRET = env("JWT_SECRET", "supersecretkeychangeit")

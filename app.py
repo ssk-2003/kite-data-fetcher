@@ -165,11 +165,18 @@ def automated_login():
             access_token = data["access_token"]
             os.environ["KITE_ACCESS_TOKEN"] = access_token
             # Update .env
-            env_path = os.path.join(BASE_DIR, ".env")
-            with open(env_path, 'r', encoding='utf-8') as f: lines = f.readlines()
-            new_lines = [l if not l.startswith("KITE_ACCESS_TOKEN=") else f"KITE_ACCESS_TOKEN={access_token}\n" for l in lines]
-            if not any(l.startswith("KITE_ACCESS_TOKEN=") for l in lines): new_lines.append(f"KITE_ACCESS_TOKEN={access_token}\n")
-            with open(env_path, 'w', encoding='utf-8') as f: f.writelines(new_lines)
+            try:
+                env_path = os.path.join(BASE_DIR, ".env")
+                lines = []
+                if os.path.exists(env_path):
+                    with open(env_path, 'r', encoding='utf-8') as f: lines = f.readlines()
+                
+                new_lines = [l if not l.startswith("KITE_ACCESS_TOKEN=") else f"KITE_ACCESS_TOKEN={access_token}\n" for l in lines]
+                if not any(l.startswith("KITE_ACCESS_TOKEN=") for l in lines): new_lines.append(f"KITE_ACCESS_TOKEN={access_token}\n")
+                
+                with open(env_path, 'w', encoding='utf-8') as f: f.writelines(new_lines)
+            except Exception as e:
+                script_status["login"]["output"] += f"⚠️ Note: Could not update .env file: {e}\n"
             
             script_status["login"]["status"] = "done"
             script_status["login"]["output"] += "💎 Access Token Updated. Starting Pipeline...\n"
@@ -211,6 +218,9 @@ def trigger_script_chain(script_id):
     try:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
+        # Explicitly ensure the current access token is passed down
+        if "KITE_ACCESS_TOKEN" in os.environ:
+            env["KITE_ACCESS_TOKEN"] = os.environ["KITE_ACCESS_TOKEN"]
         
         cmd = [sys.executable, scripts[script_id]]
         # Use binary stdout to handle encoding errors manually
@@ -260,22 +270,19 @@ def callback():
         access_token = data["access_token"]
         
         # AUTO-SAVE to .env
-        os.environ["KITE_ACCESS_TOKEN"] = access_token
-        env_path = os.path.join(BASE_DIR, ".env")
-        with open(env_path, 'r', encoding='utf-8') as f: 
-            lines = f.readlines()
-        new_lines = []
-        token_found = False
-        for l in lines:
-            if l.startswith("KITE_ACCESS_TOKEN="):
-                new_lines.append(f"KITE_ACCESS_TOKEN={access_token}\n")
-                token_found = True
-            else:
-                new_lines.append(l)
-        if not token_found:
-            new_lines.append(f"KITE_ACCESS_TOKEN={access_token}\n")
-        with open(env_path, 'w', encoding='utf-8') as f: 
-            f.writelines(new_lines)
+        try:
+            os.environ["KITE_ACCESS_TOKEN"] = access_token
+            env_path = os.path.join(BASE_DIR, ".env")
+            lines = []
+            if os.path.exists(env_path):
+                with open(env_path, 'r', encoding='utf-8') as f: lines = f.readlines()
+            
+            new_lines = [l if not l.startswith("KITE_ACCESS_TOKEN=") else f"KITE_ACCESS_TOKEN={access_token}\n" for l in lines]
+            if not any(l.startswith("KITE_ACCESS_TOKEN=") for l in lines): new_lines.append(f"KITE_ACCESS_TOKEN={access_token}\n")
+            
+            with open(env_path, 'w', encoding='utf-8') as f: f.writelines(new_lines)
+        except Exception as e:
+            print(f"Error saving to .env: {e}")
         
         # AUTO-TRIGGER PIPELINE
         def run_pipeline():
