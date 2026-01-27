@@ -75,7 +75,7 @@ def automated_login():
         import urllib.parse as urlparse
 
         script_status["login"]["status"] = "running"
-        script_status["login"]["output"] = "🚀 Starting FAST Automated Login...\n"
+        script_status["login"]["output"] = "🚀 Starting FAST Automated Login (v1.1)...\n"
 
         try:
             chrome_options = Options()
