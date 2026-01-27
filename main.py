@@ -183,10 +183,9 @@ def run_script_internal(script_id):
     threading.Thread(target=lambda: trigger_script_chain(script_id)).start()
 
 def trigger_script_chain(script_id):
-    # Use PARENT folder's scripts (OMRE/scripts) not local duplicates
-    PARENT_DIR = os.path.dirname(BASE_DIR)  # Goes up to OMRE folder
+    # Use LOCAL scripts folder for standalone deployment
     scripts = {
-        "fetch": os.path.join(PARENT_DIR, "scripts", "daily_update.py"),
+        "fetch": os.path.join(BASE_DIR, "scripts", "daily_update.py"),
     }
     
     if script_id not in scripts:
@@ -203,7 +202,7 @@ def trigger_script_chain(script_id):
         
         cmd = [sys.executable, scripts[script_id]]
         # Use binary stdout to handle encoding errors manually
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=PARENT_DIR, env=env)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=BASE_DIR, env=env)
         
         # Store process reference to allow stopping
         script_status[script_id]["process"] = process
@@ -313,10 +312,9 @@ def api_top10():
 
 @app.route('/run/<script_id>')
 def run_script(script_id):
-    # Use PARENT folder's scripts (OMRE/scripts) - only fetch is supported
-    PARENT_DIR = os.path.dirname(BASE_DIR)
+    # Use LOCAL scripts folder
     scripts = {
-        "fetch": os.path.join(PARENT_DIR, "scripts", "daily_update.py"),
+        "fetch": os.path.join(BASE_DIR, "scripts", "daily_update.py"),
     }
     
     if script_id not in scripts:
@@ -338,7 +336,7 @@ def run_script(script_id):
                 cmd, 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.STDOUT,
-                cwd=PARENT_DIR,
+                cwd=BASE_DIR,
                 env=env
             )
             script_status[script_id]["process"] = process
