@@ -8,14 +8,12 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.7
       - key: CLOUD_DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_TF3AkJ9gxbwR@ep-ancient-sea-a1xq5u13-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://neondb_owner:npg_TF3AkJ9gxbwR@ep-ancient-sea-a1xq5u13-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
       - key: KITE_API_KEY
-        sync: false
+        value: 164p2e7gh4e6qn3g
       - key: KITE_API_SECRET
-        sync: false
-      - key: KITE_ACCESS_TOKEN
-        sync: false
+        value: ett0gzojshy847f99pwlmngm3g1k88lu
       - key: KITE_REDIRECT_URL
-        sync: false
+        value: https://kite-data-fetcher.onrender.com/callback
