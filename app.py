@@ -88,13 +88,19 @@ def automated_login():
             chrome_options.page_load_strategy = 'eager'
             chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
             
-            # In Docker/Render, Chrome is at /usr/bin/google-chrome
-            if os.path.exists("/usr/bin/google-chrome"):
-                chrome_options.binary_location = "/usr/bin/google-chrome"
-                script_status["login"]["output"] += "🖥️ Using system Chrome...\n"
-
-            script_status["login"]["output"] += "⚙️ Initializing driver...\n"
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+            # In Docker/Render, use Chromium and Chromium-Driver
+            if os.path.exists("/usr/bin/chromium"):
+                chrome_options.binary_location = "/usr/bin/chromium"
+                script_status["login"]["output"] += "🖥️ Using Chromium...\n"
+                # Use fixed chromedriver path
+                service = Service(executable_path="/usr/bin/chromedriver")
+                script_status["login"]["output"] += "⚙️ Initializing Chromium driver...\n"
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+            else:
+                # Local Windows/Dev mode fallback
+                from webdriver_manager.chrome import ChromeDriverManager
+                script_status["login"]["output"] += "⚙️ Initializing local Chrome driver...\n"
+                driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
             driver.set_page_load_timeout(10)  # Fast timeout
             kite = KiteConnect(api_key=API_KEY)
             login_url = kite.login_url()
