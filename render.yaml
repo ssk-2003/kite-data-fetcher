@@ -1,9 +1,7 @@
 services:
   - type: web
     name: kite-data-fetcher
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    env: docker
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.7

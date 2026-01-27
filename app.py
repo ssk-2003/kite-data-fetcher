@@ -78,16 +78,22 @@ def automated_login():
 
         try:
             chrome_options = Options()
-            chrome_options.add_argument("--headless=new")  # New headless mode is faster
+            chrome_options.add_argument("--headless=new")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-extensions")
-            chrome_options.add_argument("--disable-images")  # Don't load images for speed
+            chrome_options.add_argument("--disable-images")
             chrome_options.add_argument("--blink-settings=imagesEnabled=false")
-            chrome_options.page_load_strategy = 'eager'  # Don't wait for full page load
+            chrome_options.page_load_strategy = 'eager'
             chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
             
+            # In Docker/Render, Chrome is at /usr/bin/google-chrome
+            if os.path.exists("/usr/bin/google-chrome"):
+                chrome_options.binary_location = "/usr/bin/google-chrome"
+                script_status["login"]["output"] += "🖥️ Using system Chrome...\n"
+
+            script_status["login"]["output"] += "⚙️ Initializing driver...\n"
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
             driver.set_page_load_timeout(10)  # Fast timeout
             kite = KiteConnect(api_key=API_KEY)
