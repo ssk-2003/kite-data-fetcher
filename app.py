@@ -4,6 +4,7 @@ import subprocess
 import threading
 import time
 import pandas as pd
+import datetime as dt
 import shutil
 from flask import Flask, render_template, request, redirect, jsonify
 from kiteconnect import KiteConnect
@@ -31,31 +32,49 @@ script_status = {
     "sync": {"status": "idle", "output": ""}
 }
 
-def get_top_10():
-    """Fetch Top 10 predictions from Cloud DB."""
+def get_top_20():
+    """Fetch Top 20 predictions from Cloud DB."""
     if not CLOUD_DATABASE_URL:
         return []
     try:
         engine = create_engine(CLOUD_DATABASE_URL)
         with engine.connect() as conn:
             # Added market_regime to query
-            query = text("SELECT symbol, omre_score, signal, stop_loss, target_price, market_regime FROM predictions ORDER BY omre_score DESC LIMIT 10")
+            query = text("SELECT symbol, omre_score, signal, stop_loss, target_price, market_regime FROM predictions ORDER BY omre_score DESC LIMIT 20")
             df = pd.read_sql(query, conn)
             return df.to_dict(orient='records')
     except Exception as e:
-        print(f"Error fetching Top 10: {e}")
+        print(f"Error fetching Top 20: {e}")
         return []
+
+def get_last_fetch():
+    """Fetch the latest timestamp from stock_history."""
+    if not CLOUD_DATABASE_URL:
+        return None
+    try:
+        engine = create_engine(CLOUD_DATABASE_URL)
+        with engine.connect() as conn:
+            query = text("SELECT MAX(ts) FROM stock_history")
+            result = conn.execute(query).scalar()
+            if result:
+                # Format to friendly string
+                return result.strftime("%Y-%m-%d %H:%M:%S")
+            return "No data"
+    except Exception as e:
+        print(f"Error fetching last fetch: {e}")
+        return "Unknown"
 
 @app.route('/')
 def dashboard():
     token = os.getenv("KITE_ACCESS_TOKEN")
     status = "Active" if token else "Expired/Missing"
-    top_10 = get_top_10()
+    top_20 = get_top_20()
+    last_fetch = get_last_fetch()
     
     # Extract Market Regime from the first stock (it's global)
-    market_regime = top_10[0]['market_regime'] if top_10 and 'market_regime' in top_10[0] else "Unknown"
+    market_regime = top_20[0]['market_regime'] if top_20 and 'market_regime' in top_20[0] else "Unknown"
     
-    return render_template('dashboard.html', token_status=status, top_stocks=top_10, market_regime=market_regime)
+    return render_template('dashboard.html', token_status=status, top_stocks=top_20, market_regime=market_regime, last_fetch=last_fetch)
 
 @app.route('/automated_login', methods=['POST'])
 def automated_login():
@@ -358,9 +377,9 @@ def callback():
 
 @app.route('/api/top10')
 def api_top10():
-    """Return top 10 predictions from cloud database as JSON"""
+    """Return top 20 predictions from cloud database as JSON"""
     try:
-        predictions = get_top_10()
+        predictions = get_top_20()
         return jsonify(predictions)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
