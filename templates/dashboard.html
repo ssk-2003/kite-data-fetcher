@@ -8,14 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-primary: #0f0f1a;
-            --bg-card: #1a1a2e;
-            --text-primary: #ffffff;
+            --bg-primary: #020205;
+            --bg-card: rgba(15, 15, 35, 0.7);
+            --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --accent: #22c55e;
+            --accent: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.3);
+            --success: #22c55e;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
+
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
         * {
             margin: 0;
@@ -24,124 +29,140 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary), #1e1e3f);
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at center, #1e1e3f 0%, #020205 70%);
+            background-attachment: fixed;
             color: var(--text-primary);
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 100vw;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
+            position: relative;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, #22c55e, #06b6d4);
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
         }
 
         .header p {
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 1.1rem;
+            font-weight: 300;
         }
 
         .card {
             background: var(--bg-card);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(6, 182, 212, 0.3);
         }
 
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .status-active {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.2);
         }
 
         .status-expired {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .btn {
-            padding: 14px 24px;
+            padding: 16px 28px;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
             justify-content: center;
+            letter-spacing: 0.5px;
         }
 
         .btn-login {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
+            background: linear-gradient(135deg, #059669, #10b981);
             color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
         }
 
         .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4);
         }
 
         .btn-fetch {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
         }
 
         .btn-fetch:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(37, 99, 235, 0.4);
         }
 
         .btn-purple {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
             color: white;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
         }
 
         .btn-purple:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(124, 58, 237, 0.4);
         }
 
         .step {
@@ -330,8 +351,44 @@
             }
         }
 
-        .fa-spin {
-            animation: spin 1s linear infinite;
+        /* Toggle Buttons */
+        .view-toggle-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            color: white;
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .toggle-btn.inactive {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+        }
+
+        .toggle-btn.inactive:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
         }
     </style>
 </head>
@@ -339,24 +396,42 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-bolt"></i> Kite Data Fetcher</h1>
-            <p>Login to Kite & Download Daily Market Data</p>
+            <div style="margin-bottom: 20px;">
+                <div
+                    style="width: 80px; height: 80px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4); border: 1px solid rgba(255,255,255,0.1);">
+                    <span
+                        style="font-size: 2.5rem; color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);">ॐ</span>
+                </div>
+                <h1 style="margin-top: 15px; font-size: 2.2rem; letter-spacing: 2px;">OMRE</h1>
+            </div>
+            <div style="margin-top: -10px; margin-bottom: 30px;">
+                <p style="font-size: 1.4rem; font-weight: 600; color: white; margin-bottom: 5px;">Trade with Clarity,
+                </p>
+                <p style="font-size: 1.4rem; font-weight: 600; color: #f59e0b;">Sleep with Peace.</p>
+            </div>
         </div>
 
         <!-- Token Status Card -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div>
-                    <h2 style="font-size: 1.2rem;"><i class="fas fa-key" style="color: #f59e0b;"></i> Kite Token</h2>
+                    <h2 style="font-size: 1.2rem; font-weight: 600;"><i class="fas fa-satellite-dish"
+                            style="color: #06b6d4;"></i> Kite Terminal</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">Access: <span
+                            class="status-badge {{ 'status-active' if token_status == 'Active' else 'status-expired' }}">{{
+                            token_status }}</span></p>
                 </div>
-                <span class="status-badge {{ 'status-active' if token_status == 'Active' else 'status-expired' }}">
-                    {{ token_status }}
-                </span>
+                <div style="text-align: right;">
+                    <p style="font-size: 0.75rem; color: var(--text-secondary);">Market Regime</p>
+                    <p style="font-size: 1rem; font-weight: bold; color: #06b6d4;">{{ market_regime }}</p>
+                </div>
             </div>
-            <div style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+            <div
+                style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
-                    <i class="fas fa-calendar-check" style="color: #3b82f6; margin-right: 8px;"></i> Last Data Fetch: 
-                    <strong style="color: white; margin-left: 5px;" id="last-fetch-ts">{{ last_fetch or 'Checking...' }}</strong>
+                    <i class="fas fa-calendar-check" style="color: #3b82f6; margin-right: 8px;"></i> Last Data Fetch:
+                    <strong style="color: white; margin-left: 5px;" id="last-fetch-ts">{{ last_fetch or 'Checking...'
+                        }}</strong>
                 </p>
             </div>
 
@@ -445,23 +520,29 @@
                 </button>
             </div>
 
+            <!-- Toggle Buttons for View Selection -->
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <button onclick="switchToMultiHorizon()" id="btn-multi-horizon" class="btn"
+                    style="flex: 1; padding: 10px; background: linear-gradient(135deg, #3b82f6, #2563eb); border: 2px solid #3b82f6;">
+                    <i class="fas fa-chart-line"></i> Multi-Horizon
+                </button>
+                <button onclick="switchTo1D()" id="btn-1d" class="btn"
+                    style="flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); color: var(--text-secondary);">
+                    <i class="fas fa-clock"></i> 1D Intraday
+                </button>
+            </div>
+
             <div id="predictions-container" style="display: none;">
                 <table class="predictions-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Symbol</th>
-                            <th>Basket</th>
-                            <th>Accuracy</th>
-                            <th>Prediction</th>
-                        </tr>
+                    <thead id="table-header">
+                        <!-- Headers will be dynamically updated based on view -->
                     </thead>
                     <tbody id="predictions-body">
                     </tbody>
                 </table>
             </div>
             <p id="predictions-empty" style="text-align: center; color: var(--text-secondary); padding: 20px;">
-                Click "Load from Cloud" to see top predictions
+                Click "Refresh from Cloud" to see top predictions
             </p>
         </div>
 
@@ -636,12 +717,51 @@
                 });
         }
 
+        let currentView = 'multi-horizon'; // Track current view
+
+        function switchToMultiHorizon() {
+            currentView = 'multi-horizon';
+            updateToggleButtons();
+            loadPredictions();
+        }
+
+        function switchTo1D() {
+            currentView = '1d';
+            updateToggleButtons();
+            loadPredictions();
+        }
+
+        function updateToggleButtons() {
+            const btnMulti = document.getElementById('btn-multi-horizon');
+            const btn1D = document.getElementById('btn-1d');
+
+            if (currentView === 'multi-horizon') {
+                btnMulti.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+                btnMulti.style.borderColor = '#3b82f6';
+                btnMulti.style.color = 'white';
+
+                btn1D.style.background = 'rgba(255,255,255,0.05)';
+                btn1D.style.borderColor = 'rgba(255,255,255,0.1)';
+                btn1D.style.color = 'var(--text-secondary)';
+            } else {
+                btn1D.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+                btn1D.style.borderColor = '#3b82f6';
+                btn1D.style.color = 'white';
+
+                btnMulti.style.background = 'rgba(255,255,255,0.05)';
+                btnMulti.style.borderColor = 'rgba(255,255,255,0.1)';
+                btnMulti.style.color = 'var(--text-secondary)';
+            }
+        }
+
         function loadPredictions() {
             const btn = document.getElementById('btn-load-predictions');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
-            fetch('/api/top10')
+            const endpoint = currentView === 'multi-horizon' ? '/api/top10' : '/api/top10_1d';
+
+            fetch(endpoint)
                 .then(res => res.json())
                 .then(data => {
                     btn.disabled = false;
@@ -660,29 +780,95 @@
                     document.getElementById('predictions-empty').style.display = 'none';
                     document.getElementById('predictions-container').style.display = 'block';
 
+                    // Update table headers based on view
+                    const tableHeader = document.getElementById('table-header');
+                    if (currentView === 'multi-horizon') {
+                        tableHeader.innerHTML = `
+                            <tr>
+                                <th>#</th>
+                                <th>Symbol</th>
+                                <th>Sim Score</th>
+                                <th>Price</th>
+                                <th>Target %</th>
+                                <th>Stop Loss</th>
+                                <th>Target Price</th>
+                                <th>Days</th>
+                                <th>Score</th>
+                            </tr>
+                        `;
+                    } else {
+                        tableHeader.innerHTML = `
+                            <tr>
+                                <th>#</th>
+                                <th>Symbol</th>
+                                <th>Probability</th>
+                                <th>Current Price</th>
+                                <th>Target Price</th>
+                                <th>Risk</th>
+                            </tr>
+                        `;
+                    }
+
                     const tbody = document.getElementById('predictions-body');
                     tbody.innerHTML = '';
 
-                    data.forEach((stock, idx) => {
-                        const scoreClass = stock.omre_score >= 70 ? 'score-high' : stock.omre_score >= 50 ? 'score-medium' : 'score-low';
-                        const accuracy = (stock.omre_score > 80) ? "99%" : "55%";
-                        const signalColor = stock.signal === 'STRONG BUY' ? '#22c55e' : stock.signal === 'BUY' ? '#3b82f6' : '#f59e0b';
-                        
-                        tbody.innerHTML += `
-                            <tr>
-                                <td style="color: var(--text-secondary); font-size: 0.75rem;">${idx + 1}</td>
-                                <td><strong>${stock.symbol}</strong></td>
-                                <td style="text-align: center;"><i class="fas fa-gem" style="color: #06b6d4; font-size: 0.8rem;"></i></td>
-                                <td><span style="color: #22c55e; font-weight: bold;">${accuracy}</span></td>
-                                <td>
-                                    <div style="display: flex; flex-direction: column;">
-                                        <span style="color: ${signalColor}; font-weight: bold; font-size: 0.8rem;">${stock.signal}</span>
-                                        <span style="color: var(--text-secondary); font-size: 0.7rem;">Score: ${stock.omre_score.toFixed(1)}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    });
+                    if (currentView === 'multi-horizon') {
+                        // Render Multi-Horizon view
+                        data.forEach((stock, idx) => {
+                            const scoreClass = stock.omre_score >= 70 ? 'score-high' : stock.omre_score >= 50 ? 'score-medium' : 'score-low';
+                            const accuracy = stock.accuracy || 'N/A';
+                            const targetPct = stock.target_percentage || 'N/A';
+                            const stopLoss = stock.stop_loss ? stock.stop_loss.toFixed(2) : 'N/A';
+                            const targetPrice = stock.target_price ? stock.target_price.toFixed(2) : 'N/A';
+                            const currentPrice = stock.current_price ? stock.current_price.toFixed(2) : 'N/A';
+                            const targetDays = stock.target_days || 'N/A';
+
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${idx + 1}</td>
+                                    <td><strong>${stock.symbol}</strong></td>
+                                    <td><span style="color: #22c55e; font-weight: bold;">${accuracy}%</span></td>
+                                    <td>₹${currentPrice}</td>
+                                    <td><span style="color: #06b6d4; font-weight: bold;">${targetPct}%</span></td>
+                                    <td><span style="color: #ef4444; font-weight: 500;">₹${stopLoss}</span></td>
+                                    <td><span style="color: #22c55e; font-weight: 500;">₹${targetPrice}</span></td>
+                                    <td><span style="color: #f59e0b; font-weight: 600;">${targetDays}D</span></td>
+                                    <td>
+                                        <span class="score-badge ${scoreClass}">${stock.omre_score.toFixed(1)}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        // Render 1D Intraday view
+                        console.log('1D Data:', data); // Debug raw data
+                        data.forEach((stock, idx) => {
+                            // Ensure it's treated as a number and not multiplied by 100
+                            let probValue = parseFloat(stock.probability);
+                            const probability = !isNaN(probValue) ? probValue.toFixed(1) : 'N/A';
+
+                            // Map risk labels to colors
+                            const risk = (stock.risk_level || 'N/A').toUpperCase();
+                            let riskColor = '#ef4444'; // High/Aggressive/Risky
+                            if (risk === 'CONSERVATIVE' || risk === 'LOW') {
+                                riskColor = '#22c55e';
+                            } else if (risk === 'MODERATE') {
+                                riskColor = '#f59e0b';
+                            }
+                            // RISKY and other labels will default to #ef4444 (red)
+
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${idx + 1}</td>
+                                    <td><strong>${stock.symbol}</strong></td>
+                                    <td><span style="color: #3b82f6; font-weight: bold;">${probability}%</span></td>
+                                    <td>₹${stock.current_price ? stock.current_price.toFixed(2) : 'N/A'}</td>
+                                    <td>₹${stock.target_price ? stock.target_price.toFixed(2) : 'N/A'}</td>
+                                    <td><span style="color: ${riskColor}; font-weight: bold;">${stock.risk_level}</span></td>
+                                </tr>
+                            `;
+                        });
+                    }
                 })
                 .catch(err => {
                     btn.disabled = false;

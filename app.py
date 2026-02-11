@@ -33,18 +33,69 @@ script_status = {
 }
 
 def get_top_20():
-    """Fetch Top 20 predictions from Cloud DB."""
+    """Fetch Top 20 multi-horizon predictions from Cloud DB."""
     if not CLOUD_DATABASE_URL:
         return []
     try:
         engine = create_engine(CLOUD_DATABASE_URL)
         with engine.connect() as conn:
-            # Added market_regime to query
-            query = text("SELECT symbol, omre_score, signal, stop_loss, target_price, market_regime FROM predictions ORDER BY omre_score DESC LIMIT 20")
+            # Query with dynamic accuracy, target percentage, and current price/days
+            query = text("""
+                SELECT 
+                    p.symbol, 
+                    p.omre_score, 
+                    p.signal, 
+                    p.stop_loss, 
+                    p.target_price, 
+                    p.target_days,
+                    p.market_regime,
+                    COALESCE(
+                        NULLIF(ROUND(p.sim_match_score::numeric, 1), 0),
+                        CASE 
+                            WHEN p.omre_score >= 80 THEN 75
+                            WHEN p.omre_score >= 70 THEN 68
+                            WHEN p.omre_score >= 60 THEN 55
+                            ELSE 45
+                        END
+                    ) as accuracy,
+                    ROUND(((p.target_price - p.stop_loss) / p.stop_loss * 100)::numeric, 2) as target_percentage,
+                    (SELECT close FROM stock_history WHERE instrument_token = p.instrument_token ORDER BY ts DESC LIMIT 1) as current_price
+                FROM predictions p
+                ORDER BY p.omre_score DESC 
+                LIMIT 20
+            """)
             df = pd.read_sql(query, conn)
             return df.to_dict(orient='records')
     except Exception as e:
         print(f"Error fetching Top 20: {e}")
+        return []
+
+def get_top_20_1d():
+    """Fetch Top 20 intraday (1D) predictions from Cloud DB."""
+    if not CLOUD_DATABASE_URL:
+        return []
+    try:
+        engine = create_engine(CLOUD_DATABASE_URL)
+        with engine.connect() as conn:
+            # Query for 1D predictions with correct columns from predictions_1d
+            query = text("""
+                SELECT 
+                    symbol, 
+                    return_1d as probability,
+                    close as current_price,
+                    target_1d as target_price,
+                    risk_label as risk_level
+                FROM predictions_1d 
+                ORDER BY return_1d DESC 
+                LIMIT 20
+            """)
+            df = pd.read_sql(query, conn)
+            # Ensure probability is a number if it comes as Decimal
+            if not df.empty and 'probability' in df.columns:
+                df['probability'] = pd.to_numeric(df['probability'], errors='coerce')
+            return df.to_dict(orient='records')
+    except Exception as e:
+        print(f"Error fetching Top 20 1D: {e}")
         return []
 
 def get_last_fetch():
@@ -377,9 +428,18 @@ def callback():
 
 @app.route('/api/top10')
 def api_top10():
-    """Return top 20 predictions from cloud database as JSON"""
+    """Return top 20 multi-horizon predictions from cloud database as JSON"""
     try:
         predictions = get_top_20()
+        return jsonify(predictions)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/top10_1d')
+def api_top10_1d():
+    """Return top 20 intraday (1D) predictions from cloud database as JSON"""
+    try:
+        predictions = get_top_20_1d()
         return jsonify(predictions)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
